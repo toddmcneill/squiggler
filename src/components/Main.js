@@ -7,48 +7,60 @@ import styles from './Main.module.css'
 function random(limit) {
   return Math.floor(Math.random() * limit)
 }
+function halfRandom(limit) {
+  return Math.floor(Math.random() * limit / 2) + limit / 4
+}
 
 function drawRandomSquiggle(ctx, width, height) {
   ctx.beginPath()
-  let x, y
-  for (let i = 0; i < random(2) + 1; i++) {
-    [x, y] = drawRandomLine(ctx, width, height, x, y)
-  }
-  for (let i = 0; i < random(2) + 1; i++) {
-    [x, y] = drawRandomCurve(ctx, width, height, x, y)
+  let lineParams
+  for (let i = 0; i < random(5) + 2; i++) {
+    if (Math.random() > .5) {
+      lineParams = drawRandomCurve(ctx, width, height, lineParams)
+    } else {
+      lineParams = drawRandomLine(ctx, width, height, lineParams)
+    }
   }
   // ctx.strokeStyle = penColor
   ctx.lineWidth = 5
-  // ctx.lineCap = penType
+  ctx.lineCap = 'round'
   ctx.stroke()
 }
 
-function drawRandomLine(ctx, width, height, startX = null, startY = null) {
+function drawRandomLine(ctx, width, height, { startX = null, startY = null } = {}) {
   if (!startX) {
-    startX = random(width)
+    startX = halfRandom(width)
   }
   if (!startY) {
-    startY = random(height)
+    startY = halfRandom(height)
   }
   ctx.moveTo(startX, startY)
-  const endX = random(width)
-  const endY = random(height)
+  const endX = halfRandom(width)
+  const endY = halfRandom(height)
   ctx.lineTo(endX, endY)
-  return [endX, endY]
+  return { startX: endX, startY: endY }
 }
 
-function drawRandomCurve(ctx, width, height, startX = null, startY = null) {
+function drawRandomCurve(ctx, width, height, { startX = null, startY = null, startBezierX, startBezierY } = {}) {
   if (!startX) {
-    startX = random(width)
+    startX = halfRandom(width)
   }
   if (!startY) {
-    startY = random(height)
+    startY = halfRandom(height)
   }
   ctx.moveTo(startX, startY)
-  const endX = random(width)
-  const endY = random(height)
-  ctx.bezierCurveTo(random(width), random(height), random(width), random(height), endX, endY)
-  return [endX, endY]
+  const endX = halfRandom(width)
+  const endY = halfRandom(height)
+  if (!startBezierX) {
+    startBezierX = startX < endX ? startX + random(width / 2) : startX - random(width / 2)
+  }
+  if (!startBezierY) {
+    startBezierY = startY < endY ? startY + random(width / 2) : startY - random(width / 2)
+  }
+  const endBezierX = startX < endX ? endX - random(width / 2) : endX + random(width / 2)
+  const endBezierY = startY < endY ? endY - random(width / 2) : endY + random(width / 2)
+  ctx.bezierCurveTo(startBezierX, startBezierY, endBezierX, endBezierY, endX, endY)
+  return { startX: endX, startY: endY, startBezierX: 2 * endX - endBezierX, startBezierY: 2 * endY - endBezierY }
 }
 
 export default function Main() {
