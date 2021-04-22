@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import Fab from '@material-ui/core/Fab'
 import Container from '@material-ui/core/Container'
 import AddIcon from '@material-ui/icons/Add'
@@ -63,7 +63,31 @@ function drawRandomCurve(ctx, width, height, { startX = null, startY = null, sta
   return { startX: endX, startY: endY, startBezierX: 2 * endX - endBezierX, startBezierY: 2 * endY - endBezierY }
 }
 
+export function getMirrorPoint(pivotPoint, pointToMirror) {
+  return { x: 2 * pivotPoint.x - pointToMirror.x, y: 2 * pivotPoint.y - pointToMirror.y }
+}
+
+function smoothLine(ctx, { a, b, c, d }) {
+  ctx.beginPath()
+  ctx.moveTo(b.x, b.y)
+  ctx.lineTo(c.x, c.y)
+  // ctx.bezierCurveTo(2 * b.x - a.x, 2 * b.y - a.y, c.x - (d.x - c.x), c.y - (d.y - d.y), c.x, c.y)
+  // console.log('Point', a, b, c, d)
+  // console.log('Bezier Curve', 2 * b.x - a.x, 2 * b.y - a.y, c.x - (d.x - c.x), c.y - (d.y - d.y), c.x, c.y)
+  ctx.strokeStyle = 'black'
+  ctx.lineWidth = 3
+  ctx.lineCap = 'smooth'
+  ctx.stroke()
+}
+
+function getPoint (sketchElement, event) {
+  const { top, left } = sketchElement.current.getBoundingClientRect()
+  return { x: event.pageX - left - window.pageXOffset, y: event.pageY - top - window.pageYOffset }
+}
+
 export default function Main() {
+  const [mouseDown, setMouseDown] = useState(false)
+  const [pointState, setPointState] = useState()
   const sketchElement = useRef()
 
   const startNewSquiggle = () => {
@@ -81,10 +105,40 @@ export default function Main() {
     drawRandomSquiggle(ctx, width, height)
   }
 
+  const onMouseDown = (event) => {
+    setMouseDown(true)
+    const point = getPoint(sketchElement, event)
+    setPointState({ b: point, c: point, d: point })
+    console.log('down', point)
+  }
+
+  const onMouseUp = (event) => {
+    onMouseMove(event)
+    onMouseMove(event)
+    setMouseDown(false)
+  }
+
+  const onMouseMove = (event) => {
+    if (mouseDown) {
+      const newPointState = { a: pointState.b, b: pointState.c, c: pointState.d, d: getPoint(sketchElement, event) }
+      smoothLine(sketchElement.current.getContext('2d'), newPointState)
+      setPointState(newPointState)
+    }
+  }
+
   return (
     <Container className={styles.container}>
       <div className={styles.drawingArea}>
-        <canvas ref={sketchElement} className={styles.canvas} />
+        <canvas ref={sketchElement}
+          className={styles.canvas}
+          onMouseMove={onMouseMove}
+          onMouseDown={onMouseDown}
+          onMouseUp={onMouseUp}
+          // onMouseLeave={drawMouseLeave}
+          // onTouchStart={event => setPositionAndDraw(event, false)}
+          // onTouchMove={setPositionAndDraw}
+          // onTouchEnd={setPositionAndDraw}
+          />
       </div>
       <div className={styles.buttonContainer}>
         <Fab variant='extended' color='secondary' onClick={startNewSquiggle}>
