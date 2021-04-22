@@ -1,0 +1,22 @@
+{
+  "files": {
+    "main.css": "/squiggler/static/css/main.cc5ca9f6.chunk.css",
+    "main.js": "/squiggler/static/js/main.6e45cd79.chunk.js",
+    "main.js.map": "/squiggler/static/js/main.6e45cd79.chunk.js.map",
+    "runtime-main.js": "/squiggler/static/js/runtime-main.dd59f622.js",
+    "runtime-main.js.map": "/squiggler/static/js/runtime-main.dd59f622.js.map",
+    "static/js/2.e5c76c46.chunk.js": "/squiggler/static/js/2.e5c76c46.chunk.js",
+    "static/js/2.e5c76c46.chunk.js.map": "/squiggler/static/js/2.e5c76c46.chunk.js.map",
+    "static/js/3.f73c4adf.chunk.js": "/squiggler/static/js/3.f73c4adf.chunk.js",
+    "static/js/3.f73c4adf.chunk.js.map": "/squiggler/static/js/3.f73c4adf.chunk.js.map",
+    "index.html": "/squiggler/index.html",
+    "static/css/main.cc5ca9f6.chunk.css.map": "/squiggler/static/css/main.cc5ca9f6.chunk.css.map",
+    "static/js/2.e5c76c46.chunk.js.LICENSE.txt": "/squiggler/static/js/2.e5c76c46.chunk.js.LICENSE.txt"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.dd59f622.js",
+    "static/js/2.e5c76c46.chunk.js",
+    "static/css/main.cc5ca9f6.chunk.css",
+    "static/js/main.6e45cd79.chunk.js"
+  ]
+}
