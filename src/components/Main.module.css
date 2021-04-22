@@ -1,0 +1,10 @@
+.main {
+  display: flex;
+  justify-content: center;
+}
+
+.drawingArea {
+  width: 400px;
+  height: 400px;
+  background-color: white;
+}

@@ -2,22 +2,20 @@
   height: 100vh;
   width: 100vw;
   display: grid;
-  grid-template-columns: 200px minmax(0, 1fr);
-  grid-template-rows: 200px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: min-content minmax(0, 1fr);
   grid-template-areas:
-    "header header"
-    "left-sidebar main";
-  background-color: #FFD967;
+    "header"
+    "main";
+  background-color: #ECEFF1;
 }
 
 .header {
   grid-area: header;
-}
-
-.leftSidebar {
-  grid-area: left-sidebar;
+  background-color: white;
 }
 
 .main {
-  grid-area: main
+  grid-area: main;
+  justify-self: center;
 }
