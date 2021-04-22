@@ -10,7 +10,6 @@ const theme = createMuiTheme({
     primary: {
       main: '#4DD0E1',
       dark: '#00ACC1'
-
     },
     secondary: {
       main: '#FFEB3B',
@@ -24,7 +23,7 @@ export default function App() {
     <ThemeProvider theme={theme}>
       <div className={styles.app}>
         <div className={styles.header}>
-          <AppBar color='white' position='relative' className={styles.appBar}>
+          <AppBar color='transparent' position='relative' className={styles.appBar}>
             <div className={styles.headerText}>
               <Logo />
               squiggler

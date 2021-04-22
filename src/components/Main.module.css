@@ -17,3 +17,8 @@
   background-color: white;
   position: relative;
 }
+
+.canvas {
+  width: 100%;
+  height: 100%;
+}
