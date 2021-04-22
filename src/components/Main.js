@@ -67,12 +67,26 @@ export function getMirrorPoint(pivotPoint, pointToMirror) {
   return { x: 2 * pivotPoint.x - pointToMirror.x, y: 2 * pivotPoint.y - pointToMirror.y }
 }
 
+export function getFirstControlPoint({ a, b, c}) {
+  const x = b.x + (c.x - a.x) / 6
+  const y = b.y + (c.y - a.y) / 6
+  return { x, y }
+}
+
+export function getSecondControlPoint({ b, c, d}) {
+  const x = c.x + (b.x - d.x) / 6
+  const y = c.y + (b.y - d.y) / 6
+  return { x, y }
+}
+
 function smoothLine(ctx, { a, b, c, d }) {
   ctx.beginPath()
   ctx.moveTo(b.x, b.y)
-  ctx.lineTo(c.x, c.y)
-  // ctx.bezierCurveTo(2 * b.x - a.x, 2 * b.y - a.y, c.x - (d.x - c.x), c.y - (d.y - d.y), c.x, c.y)
-  // console.log('Point', a, b, c, d)
+  // ctx.lineTo(c.x, c.y)
+  const firstControl = getFirstControlPoint({ a, b, c })
+  const secondControl = getSecondControlPoint({ b, c, d })
+  ctx.bezierCurveTo(firstControl.x, firstControl.y, secondControl.x, secondControl.y, c.x, c.y)
+  console.log('Point', a, b, c)
   // console.log('Bezier Curve', 2 * b.x - a.x, 2 * b.y - a.y, c.x - (d.x - c.x), c.y - (d.y - d.y), c.x, c.y)
   ctx.strokeStyle = 'black'
   ctx.lineWidth = 3
@@ -109,7 +123,6 @@ export default function Main() {
     setMouseDown(true)
     const point = getPoint(sketchElement, event)
     setPointState({ b: point, c: point, d: point })
-    console.log('down', point)
   }
 
   const onMouseUp = (event) => {
