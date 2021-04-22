@@ -13,9 +13,19 @@
 .header {
   grid-area: header;
   background-color: white;
+  font-family: 'Gugi', cursive;
+}
+
+.appBar {
+  padding: 15px 35px;
+}
+
+.headerText {
+  display: flex;
+  font-size: 20px;
+  line-height: 25px;
 }
 
 .main {
   grid-area: main;
-  justify-self: center;
 }
