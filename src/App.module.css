@@ -16,14 +16,11 @@
   font-family: 'Gugi', cursive;
 }
 
-.appBar {
-  padding: 15px 35px;
-}
-
 .headerText {
   display: flex;
   font-size: 20px;
   line-height: 25px;
+  flex-grow: 1;
 }
 
 .main {

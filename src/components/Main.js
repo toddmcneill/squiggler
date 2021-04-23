@@ -124,6 +124,7 @@ export default function Main() {
 
   // Reset the canvas on window resize to avoid weird offset issues.
   // It's not the optimal solution, but prevents a pretty confusing bug.
+  // It's disabled for now because it also causes confusing behavior.
   // useEffect(() => {
   //   const resizeHandler = () => {
   //     fixCanvasScale()
