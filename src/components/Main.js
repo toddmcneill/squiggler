@@ -4,6 +4,8 @@ import Container from '@material-ui/core/Container'
 import AddIcon from '@material-ui/icons/Add'
 import styles from './Main.module.css'
 
+const SCALAR = 2
+
 function random(limit) {
   return Math.floor(Math.random() * limit)
 }
@@ -42,8 +44,9 @@ function drawRandomSquiggle(ctx, width, height) {
     }
   }
 
+  const isVerticalSort = Math.random() > .5
   randomPoints.sort((a, b) => {
-    if (Math.random > .5) {
+    if (isVerticalSort) {
       return b.y - a.y
     } else {
       return b.x - a.x
@@ -54,14 +57,14 @@ function drawRandomSquiggle(ctx, width, height) {
       : drawLine(ctx, point, indexOrLast(i + 1))
   })
   // ctx.strokeStyle = penColor
-  ctx.lineWidth = 5
+  ctx.lineWidth = 5 * SCALAR
   ctx.lineCap = 'round'
   ctx.stroke()
 }
 
 function drawLine(ctx, start, end) {
-  ctx.moveTo(start.x, start.y)
-  ctx.lineTo(end.x, end.y)
+  ctx.moveTo(start.x * SCALAR, start.y * SCALAR)
+  ctx.lineTo(end.x * SCALAR, end.y * SCALAR)
   ctx.stroke()
 }
 
@@ -82,12 +85,12 @@ export function getSecondControlPoint({ b, c, d}) {
 
 function smoothLine(ctx, { a, b, c, d }) {
   // Draw a line between B and C. Use the slope of the surrounding points to calculate control points.
-  ctx.moveTo(b.x, b.y)
+  ctx.moveTo(b.x * SCALAR, b.y * SCALAR)
   const firstControl = getFirstControlPoint({ a, b, c })
   const secondControl = getSecondControlPoint({ b, c, d })
-  ctx.bezierCurveTo(firstControl.x, firstControl.y, secondControl.x, secondControl.y, c.x, c.y)
+  ctx.bezierCurveTo(firstControl.x * SCALAR, firstControl.y * SCALAR, secondControl.x * SCALAR, secondControl.y * SCALAR, c.x * SCALAR, c.y * SCALAR)
   ctx.strokeStyle = 'black'
-  ctx.lineWidth = 3
+  ctx.lineWidth = 3 * SCALAR
   ctx.lineCap = 'smooth'
   ctx.stroke()
 }
@@ -105,8 +108,8 @@ export default function Main() {
   const fixCanvasScale = () => {
     const canvas = sketchElement.current
     const { width, height } = canvas.getBoundingClientRect()
-    canvas.setAttribute('width', width)
-    canvas.setAttribute('height', height)
+    canvas.setAttribute('width', width * SCALAR)
+    canvas.setAttribute('height', height * SCALAR)
     return { width, height }
   }
 
