@@ -7,60 +7,62 @@ import styles from './Main.module.css'
 function random(limit) {
   return Math.floor(Math.random() * limit)
 }
-function halfRandom(limit) {
-  return Math.floor(Math.random() * limit / 2) + limit / 4
+
+function semiRandom(limit) {
+  return Math.floor(Math.random() * limit * .8) + limit * .1
 }
 
 function drawRandomSquiggle(ctx, width, height) {
-  ctx.beginPath()
-  let lineParams
-  for (let i = 0; i < random(5) + 2; i++) {
-    if (Math.random() > .5) {
-      lineParams = drawRandomCurve(ctx, width, height, lineParams)
+  const randomPoints = []
+  for (let i = 0; i < random(3) + 4; i++) {
+    randomPoints.push({
+      x: semiRandom(width),
+      y: semiRandom(height),
+      isCurve: Math.random() > .5
+    })
+  }
+
+  function indexOrNext (index) {
+    if (randomPoints[index]) {
+      return randomPoints[index]
+    } else if (randomPoints[index + 1]) {
+      return randomPoints[index + 1]
     } else {
-      lineParams = drawRandomLine(ctx, width, height, lineParams)
+      return randomPoints[index + 2]
     }
   }
+  
+  function indexOrLast (index) {
+    if (randomPoints[index]) {
+      return randomPoints[index]
+    } else if (randomPoints[index - 1]) {
+      return randomPoints[index - 1]
+    } else {
+      return randomPoints[index - 2]
+    }
+  }
+
+  randomPoints.sort((a, b) => {
+    if (Math.random > .5) {
+      return b.y - a.y
+    } else {
+      return b.x - a.x
+    }
+  }).forEach((point, i) => {
+    point.isCurve
+      ? smoothLine(ctx, { a: indexOrNext(i - 1), b: indexOrNext(i), c: indexOrLast(i + 1), d: indexOrLast(i + 2)})
+      : drawLine(ctx, point, indexOrLast(i + 1))
+  })
   // ctx.strokeStyle = penColor
   ctx.lineWidth = 5
   ctx.lineCap = 'round'
   ctx.stroke()
 }
 
-function drawRandomLine(ctx, width, height, { startX = null, startY = null } = {}) {
-  if (!startX) {
-    startX = halfRandom(width)
-  }
-  if (!startY) {
-    startY = halfRandom(height)
-  }
-  ctx.moveTo(startX, startY)
-  const endX = halfRandom(width)
-  const endY = halfRandom(height)
-  ctx.lineTo(endX, endY)
-  return { startX: endX, startY: endY }
-}
-
-function drawRandomCurve(ctx, width, height, { startX = null, startY = null, startBezierX, startBezierY } = {}) {
-  if (!startX) {
-    startX = halfRandom(width)
-  }
-  if (!startY) {
-    startY = halfRandom(height)
-  }
-  ctx.moveTo(startX, startY)
-  const endX = halfRandom(width)
-  const endY = halfRandom(height)
-  if (!startBezierX) {
-    startBezierX = startX < endX ? startX + random(width / 2) : startX - random(width / 2)
-  }
-  if (!startBezierY) {
-    startBezierY = startY < endY ? startY + random(width / 2) : startY - random(width / 2)
-  }
-  const endBezierX = startX < endX ? endX - random(width / 2) : endX + random(width / 2)
-  const endBezierY = startY < endY ? endY - random(width / 2) : endY + random(width / 2)
-  ctx.bezierCurveTo(startBezierX, startBezierY, endBezierX, endBezierY, endX, endY)
-  return { startX: endX, startY: endY, startBezierX: 2 * endX - endBezierX, startBezierY: 2 * endY - endBezierY }
+function drawLine(ctx, start, end) {
+  ctx.moveTo(start.x, start.y)
+  ctx.lineTo(end.x, end.y)
+  ctx.stroke()
 }
 
 // Values between 5 and 10 seem to work best. Too high, and it doesn't smooth much. Too low, and it makes swoopy artifacts.
@@ -80,7 +82,6 @@ export function getSecondControlPoint({ b, c, d}) {
 
 function smoothLine(ctx, { a, b, c, d }) {
   // Draw a line between B and C. Use the slope of the surrounding points to calculate control points.
-  ctx.beginPath()
   ctx.moveTo(b.x, b.y)
   const firstControl = getFirstControlPoint({ a, b, c })
   const secondControl = getSecondControlPoint({ b, c, d })
@@ -145,6 +146,7 @@ export default function Main() {
     setMouseDown(true)
     const point = getPoint(sketchElement, event.pageX, event.pageY)
     setPointState({ b: point, c: point, d: point })
+    sketchElement.current.getContext('2d').beginPath()
   }
 
   const onMouseMove = (event) => {
@@ -196,6 +198,7 @@ export default function Main() {
           onMouseDown={onMouseDown}
           onMouseMove={onMouseMove}
           onMouseUp={onMouseUp}
+          onMouseLeave={onMouseUp}
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
