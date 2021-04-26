@@ -29,7 +29,6 @@ export default function Instructions({ isOpen, setIsOpen }) {
     if (!shown) {
       setIsOpen(true)
     }
-    console.log('in here')
   })
 
   let img = onboarding1

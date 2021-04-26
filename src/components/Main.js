@@ -91,9 +91,9 @@ function smoothLine(ctx, { a, b, c, d }) {
   ctx.stroke()
 }
 
-function getPoint (sketchElement, event) {
+function getPoint(sketchElement, x, y) {
   const { top, left } = sketchElement.current.getBoundingClientRect()
-  return { x: event.pageX - left - window.pageXOffset, y: event.pageY - top - window.pageYOffset }
+  return { x: x - left - window.pageXOffset, y: y - top - window.pageYOffset }
 }
 
 export default function Main() {
@@ -143,8 +143,16 @@ export default function Main() {
 
   const onMouseDown = (event) => {
     setMouseDown(true)
-    const point = getPoint(sketchElement, event)
+    const point = getPoint(sketchElement, event.pageX, event.pageY)
     setPointState({ b: point, c: point, d: point })
+  }
+
+  const onMouseMove = (event) => {
+    if (mouseDown) {
+      const newPointState = { a: pointState.b, b: pointState.c, c: pointState.d, d: getPoint(sketchElement, event.pageX, event.pageY) }
+      smoothLine(sketchElement.current.getContext('2d'), newPointState)
+      setPointState(newPointState)
+    }
   }
 
   const onMouseUp = (event) => {
@@ -153,12 +161,31 @@ export default function Main() {
     setMouseDown(false)
   }
 
-  const onMouseMove = (event) => {
+  const onTouchStart = (event) => {
+    setMouseDown(true)
+    const x = event?.changedTouches?.[0]?.pageX
+    const y = event?.changedTouches?.[0]?.pageY
+    const point = getPoint(sketchElement, x, y)
+    setPointState({ b: point, c: point, d: point })
+  }
+
+  const onTouchMove = (event) => {
+    if (event.touches.length > 1) {
+      return
+    }
     if (mouseDown) {
-      const newPointState = { a: pointState.b, b: pointState.c, c: pointState.d, d: getPoint(sketchElement, event) }
+      const x = event?.changedTouches?.[0]?.pageX
+      const y = event?.changedTouches?.[0]?.pageY
+      const newPointState = { a: pointState.b, b: pointState.c, c: pointState.d, d: getPoint(sketchElement, x, y) }
       smoothLine(sketchElement.current.getContext('2d'), newPointState)
       setPointState(newPointState)
     }
+  }
+
+  const onTouchEnd = (event) => {
+    onTouchMove(event)
+    onTouchMove(event)
+    setMouseDown(false)
   }
 
   return (
@@ -166,13 +193,12 @@ export default function Main() {
       <div className={styles.drawingArea}>
         <canvas ref={sketchElement}
           className={styles.canvas}
-          onMouseMove={onMouseMove}
           onMouseDown={onMouseDown}
+          onMouseMove={onMouseMove}
           onMouseUp={onMouseUp}
-          // onMouseLeave={drawMouseLeave}
-          // onTouchStart={event => setPositionAndDraw(event, false)}
-          // onTouchMove={setPositionAndDraw}
-          // onTouchEnd={setPositionAndDraw}
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
           />
       </div>
       <div className={styles.buttonContainer}>
