@@ -1,6 +1,6 @@
 {
   "files": {
-    "main.css": "/squiggler/static/css/main.79e7333a.chunk.css",
+    "main.css": "/squiggler/static/css/main.ddc181d6.chunk.css",
     "main.js": "/squiggler/static/js/main.7341ba9a.chunk.js",
     "main.js.map": "/squiggler/static/js/main.7341ba9a.chunk.js.map",
     "runtime-main.js": "/squiggler/static/js/runtime-main.2a916b64.js",
@@ -10,7 +10,7 @@
     "static/js/3.2512076e.chunk.js": "/squiggler/static/js/3.2512076e.chunk.js",
     "static/js/3.2512076e.chunk.js.map": "/squiggler/static/js/3.2512076e.chunk.js.map",
     "index.html": "/squiggler/index.html",
-    "static/css/main.79e7333a.chunk.css.map": "/squiggler/static/css/main.79e7333a.chunk.css.map",
+    "static/css/main.ddc181d6.chunk.css.map": "/squiggler/static/css/main.ddc181d6.chunk.css.map",
     "static/js/2.f28435f8.chunk.js.LICENSE.txt": "/squiggler/static/js/2.f28435f8.chunk.js.LICENSE.txt",
     "static/media/instructions1.2156b3f2.svg": "/squiggler/static/media/instructions1.2156b3f2.svg",
     "static/media/instructions2.90be4561.svg": "/squiggler/static/media/instructions2.90be4561.svg"
@@ -18,7 +18,7 @@
   "entrypoints": [
     "static/js/runtime-main.2a916b64.js",
     "static/js/2.f28435f8.chunk.js",
-    "static/css/main.79e7333a.chunk.css",
+    "static/css/main.ddc181d6.chunk.css",
     "static/js/main.7341ba9a.chunk.js"
   ]
 }
