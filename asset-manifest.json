@@ -1,8 +1,8 @@
 {
   "files": {
     "main.css": "/squiggler/static/css/main.79e7333a.chunk.css",
-    "main.js": "/squiggler/static/js/main.b2602c02.chunk.js",
-    "main.js.map": "/squiggler/static/js/main.b2602c02.chunk.js.map",
+    "main.js": "/squiggler/static/js/main.7341ba9a.chunk.js",
+    "main.js.map": "/squiggler/static/js/main.7341ba9a.chunk.js.map",
     "runtime-main.js": "/squiggler/static/js/runtime-main.2a916b64.js",
     "runtime-main.js.map": "/squiggler/static/js/runtime-main.2a916b64.js.map",
     "static/js/2.f28435f8.chunk.js": "/squiggler/static/js/2.f28435f8.chunk.js",
@@ -19,6 +19,6 @@
     "static/js/runtime-main.2a916b64.js",
     "static/js/2.f28435f8.chunk.js",
     "static/css/main.79e7333a.chunk.css",
-    "static/js/main.b2602c02.chunk.js"
+    "static/js/main.7341ba9a.chunk.js"
   ]
 }
