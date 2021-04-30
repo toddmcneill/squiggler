@@ -3,7 +3,7 @@ import Switch from '@material-ui/core/Switch'
 import Button from '@material-ui/core/Button'
 import styles from './Controls.module.css'
 
-export default function Controls({ showSuggestion, setShowSuggestion, startNewSquiggle }) {
+export default function Controls({ showSuggestion, setShowSuggestion, getSquiggles }) {
   const handleSuggestionToggle = (event) => {
     setShowSuggestion(event.target.checked)
   }
@@ -22,7 +22,7 @@ export default function Controls({ showSuggestion, setShowSuggestion, startNewSq
           label='Include Drawing Prompt'
         />
       </div>
-      <Button variant='contained' color='secondary' onClick={startNewSquiggle}>
+      <Button variant='contained' color='secondary' onClick={getSquiggles}>
         Get Squiggles
       </Button>
     </div>
