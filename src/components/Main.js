@@ -1,8 +1,10 @@
 import { useRef, useState, useEffect, useCallback } from 'react'
-import Fab from '@material-ui/core/Fab'
 import Container from '@material-ui/core/Container'
-import AddIcon from '@material-ui/icons/Add'
+import Fab from '@material-ui/core/Fab'
+import Controls from './Controls'
 import styles from './Main.module.css'
+// import RotateRightIcon from '@material-ui/icons/RotateRight'
+import suggestions from '../suggestions.json'
 
 const SCALAR = 2
 
@@ -101,9 +103,21 @@ function getPoint(sketchElement, x, y) {
 }
 
 export default function Main() {
+  const [suggestion, setSuggestion] = useState(null)
   const [mouseDown, setMouseDown] = useState(false)
   const [pointState, setPointState] = useState({})
   const sketchElement = useRef()
+
+  const [showSuggestion, setShowSuggestion] = useState(true)
+
+  const generateSuggestion = useCallback(() => {
+    const noun = suggestions[Math.floor(Math.random() * suggestions.length)]
+    setSuggestion(noun)
+  }, [])
+
+  useEffect(() => {
+    generateSuggestion()
+  }, [showSuggestion, generateSuggestion])
 
   const fixCanvasScale = () => {
     const canvas = sketchElement.current
@@ -124,7 +138,10 @@ export default function Main() {
 
     // Draw squiggle
     drawRandomSquiggle(ctx, width, height)
-  }, [sketchElement])
+
+    // Generate a new suggestion.
+    generateSuggestion()
+  }, [sketchElement, generateSuggestion])
 
   // Reset the canvas on window resize to avoid weird offset issues.
   // It's not the optimal solution, but prevents a pretty confusing bug.
@@ -194,25 +211,38 @@ export default function Main() {
   }
 
   return (
-    <Container className={styles.container}>
-      <div className={styles.drawingArea}>
-        <canvas ref={sketchElement}
-          className={styles.canvas}
-          onMouseDown={onMouseDown}
-          onMouseMove={onMouseMove}
-          onMouseUp={onMouseUp}
-          onMouseLeave={onMouseUp}
-          onTouchStart={onTouchStart}
-          onTouchMove={onTouchMove}
-          onTouchEnd={onTouchEnd}
-          />
-      </div>
-      <div className={styles.buttonContainer}>
-        <Fab variant='extended' color='secondary' onClick={startNewSquiggle}>
-          <AddIcon />
-          New Squiggle
-        </Fab>
-      </div>
-    </Container>
+    <div className={styles.main}>
+      <Container>
+        <Controls setShowSuggestion={setShowSuggestion} startNewSquiggle={startNewSquiggle} />
+      </Container>
+      <Container className={styles.container}>
+        <div className={styles.drawingArea}>
+          <canvas ref={sketchElement}
+            className={styles.canvas}
+            onMouseDown={onMouseDown}
+            onMouseMove={onMouseMove}
+            onMouseUp={onMouseUp}
+            onMouseLeave={onMouseUp}
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+            />
+        </div>
+        <div className={styles.buttonContainer}>
+          <div className={styles.rotateButtonDiv}>
+            {/*<Fab className={styles.rotateButton} size='small'>*/}
+            {/*  <RotateRightIcon />*/}
+            {/*</Fab>*/}
+          </div>
+          {
+            showSuggestion &&
+            <Fab variant='extended' color='primary' onClick={generateSuggestion}>
+              Draw <span className={styles.suggestionText}>{suggestion}</span>
+            </Fab>
+          }
+          <div className={styles.emptySide} />
+        </div>
+      </Container>
+    </div>
   )
 }

@@ -8,6 +8,7 @@
     "header"
     "main";
   background-color: #ECEFF1;
+  min-width: 300px;
 }
 
 .header {

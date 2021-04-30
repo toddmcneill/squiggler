@@ -1,14 +1,45 @@
-.container {
-  padding-top: 40px;
-  padding-bottom: 40px;
-  position: relative;
+.main {
+  padding-top: 24px;
+  padding-bottom: 24px;
   height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  position: relative;
+  flex-grow: 1;
+  min-height: 0;
 }
 
 .buttonContainer {
   position: absolute;
-  right: 3rem;
-  top: 1rem;
+  left: 0.3rem;
+  top: -1.3rem;
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.rotateButtonDiv {
+  flex-basis: 40px;
+}
+
+.rotateButton {
+  background-color: white !important;
+}
+
+.suggestionText {
+  text-transform: uppercase;
+  font-weight: bold;
+  margin-left: 1ex;
+  color: rgba(255, 255, 255, 0.9);
+  white-space: nowrap;
+}
+
+.emptySide {
+  flex-basis: 40px;
 }
 
 .drawingArea {
