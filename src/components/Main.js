@@ -24,7 +24,7 @@ export default function Main() {
 
   useEffect(() => {
     const localStorageShowSuggestion = window.localStorage.getItem('showSuggestion')
-    const shouldShow = localStorageShowSuggestion !== undefined ? localStorageShowSuggestion === 'true' : true
+    const shouldShow = localStorageShowSuggestion !== null ? localStorageShowSuggestion === 'true' : true
     setShowSuggestion(shouldShow)
     generateSuggestion()
   }, [setShowSuggestion, generateSuggestion])
