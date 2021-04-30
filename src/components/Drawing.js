@@ -18,7 +18,7 @@ function drawRandomSquiggle(ctx, width, height) {
     randomPoints.push({
       x: semiRandom(width),
       y: semiRandom(height),
-      isCurve: Math.random() > .5
+      isCurve: Math.random() < .7
     })
   }
 
@@ -42,17 +42,25 @@ function drawRandomSquiggle(ctx, width, height) {
     }
   }
 
-  const isVerticalSort = Math.random() > .5
-  randomPoints.sort((a, b) => {
-    if (isVerticalSort) {
-      return b.y - a.y
-    } else {
-      return b.x - a.x
-    }
-  }).forEach((point, i) => {
-    point.isCurve
-      ? smoothLine(ctx, { a: indexOrNext(i - 1), b: indexOrNext(i), c: indexOrLast(i + 1), d: indexOrLast(i + 2)})
-      : drawLine(ctx, point, indexOrLast(i + 1))
+  const isSorted = Math.random() < .3
+  const isVerticalSort = Math.random() < .5
+  const smoothingFactor = Math.random() * 5 + 0.5
+  randomPoints
+    .sort((a, b) => {
+      if (!isSorted) {
+        return 0
+      }
+      if (isVerticalSort) {
+        return b.y - a.y
+      } else {
+        return b.x - a.x
+      }
+    })
+    .forEach((point, i) => {
+
+      point.isCurve
+        ? smoothLine(ctx, { a: indexOrNext(i - 1), b: indexOrNext(i), c: indexOrLast(i + 1), d: indexOrLast(i + 2)}, smoothingFactor)
+        : drawLine(ctx, point, indexOrLast(i + 1))
   })
   // ctx.strokeStyle = penColor
   ctx.lineWidth = 5 * SCALAR
@@ -66,26 +74,26 @@ function drawLine(ctx, start, end) {
   ctx.stroke()
 }
 
+export function getFirstControlPoint({ a, b, c}, smoothingFactor) {
+  const x = b.x + (c.x - a.x) / smoothingFactor
+  const y = b.y + (c.y - a.y) / smoothingFactor
+  return { x, y }
+}
+
+export function getSecondControlPoint({ b, c, d}, smoothingFactor) {
+  const x = c.x + (b.x - d.x) / smoothingFactor
+  const y = c.y + (b.y - d.y) / smoothingFactor
+  return { x, y }
+}
+
 // Values between 5 and 10 seem to work best. Too high, and it doesn't smooth much. Too low, and it makes swoopy artifacts.
 const SMOOTHING_FACTOR = 6
 
-export function getFirstControlPoint({ a, b, c}) {
-  const x = b.x + (c.x - a.x) / SMOOTHING_FACTOR
-  const y = b.y + (c.y - a.y) / SMOOTHING_FACTOR
-  return { x, y }
-}
-
-export function getSecondControlPoint({ b, c, d}) {
-  const x = c.x + (b.x - d.x) / SMOOTHING_FACTOR
-  const y = c.y + (b.y - d.y) / SMOOTHING_FACTOR
-  return { x, y }
-}
-
-function smoothLine(ctx, { a, b, c, d }) {
+function smoothLine(ctx, { a, b, c, d }, smoothingFactor = SMOOTHING_FACTOR) {
   // Draw a line between B and C. Use the slope of the surrounding points to calculate control points.
   ctx.moveTo(b.x * SCALAR, b.y * SCALAR)
-  const firstControl = getFirstControlPoint({ a, b, c })
-  const secondControl = getSecondControlPoint({ b, c, d })
+  const firstControl = getFirstControlPoint({ a, b, c }, smoothingFactor)
+  const secondControl = getSecondControlPoint({ b, c, d }, smoothingFactor)
   ctx.bezierCurveTo(firstControl.x * SCALAR, firstControl.y * SCALAR, secondControl.x * SCALAR, secondControl.y * SCALAR, c.x * SCALAR, c.y * SCALAR)
   ctx.strokeStyle = 'black'
   ctx.lineWidth = 3 * SCALAR
