@@ -3,7 +3,7 @@ import Switch from '@material-ui/core/Switch'
 import Button from '@material-ui/core/Button'
 import styles from './Controls.module.css'
 
-export default function Controls({ setShowSuggestion, startNewSquiggle }) {
+export default function Controls({ showSuggestion, setShowSuggestion, startNewSquiggle }) {
   const handleSuggestionToggle = (event) => {
     setShowSuggestion(event.target.checked)
   }
@@ -14,6 +14,7 @@ export default function Controls({ setShowSuggestion, startNewSquiggle }) {
         <FormControlLabel
           control={
             <Switch
+              checked={showSuggestion}
               color='primary'
               onChange={handleSuggestionToggle}
             />

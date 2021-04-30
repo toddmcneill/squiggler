@@ -213,7 +213,7 @@ export default function Main() {
   return (
     <div className={styles.main}>
       <Container>
-        <Controls setShowSuggestion={setShowSuggestion} startNewSquiggle={startNewSquiggle} />
+        <Controls showSuggestion={showSuggestion} setShowSuggestion={setShowSuggestion} startNewSquiggle={startNewSquiggle} />
       </Container>
       <Container className={styles.container}>
         <div className={styles.drawingArea}>
