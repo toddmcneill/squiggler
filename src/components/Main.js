@@ -11,6 +11,7 @@ export default function Main() {
   const [suggestion, setSuggestion] = useState(null)
   const sketchElement = useRef()
 
+  const [showSuggestionSwitch, setShowSuggestionSwitch] = useState(false)
   const [showSuggestion, setShowSuggestion] = useState(true)
   const setShowSuggestionLocalStorage = (shouldShow) => {
     setShowSuggestion(shouldShow)
@@ -26,6 +27,7 @@ export default function Main() {
     const localStorageShowSuggestion = window.localStorage.getItem('showSuggestion')
     const shouldShow = localStorageShowSuggestion !== null ? localStorageShowSuggestion === 'true' : true
     setShowSuggestion(shouldShow)
+    setShowSuggestionSwitch(true)
     generateSuggestion()
   }, [setShowSuggestion, generateSuggestion])
 
@@ -37,7 +39,7 @@ export default function Main() {
   return (
     <div className={styles.main}>
       <Container>
-        <Controls showSuggestion={showSuggestion} setShowSuggestion={setShowSuggestionLocalStorage} getSquiggles={getSquiggles} />
+        <Controls showSuggestionSwitch={showSuggestionSwitch} showSuggestion={showSuggestion} setShowSuggestion={setShowSuggestionLocalStorage} getSquiggles={getSquiggles} />
       </Container>
       <Container className={styles.container}>
         <Drawing ref={sketchElement} generateSuggestion={generateSuggestion} key={drawingKey} />
