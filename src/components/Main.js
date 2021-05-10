@@ -3,7 +3,7 @@ import Container from '@material-ui/core/Container'
 import Fab from '@material-ui/core/Fab'
 import Controls from './Controls'
 import suggestions from '../suggestions.json'
-// import RotateRightIcon from '@material-ui/icons/RotateRight'
+import RotateRightIcon from '@material-ui/icons/RotateRight'
 import Drawing from './Drawing'
 import styles from './Main.module.css'
 
@@ -33,7 +33,14 @@ export default function Main() {
 
   const [drawingKey, setDrawingKey] = useState('0')
   const getSquiggles = () => {
+    // Reset the Drawing element by forcing it to rerender.
     setDrawingKey(drawingKey + 1)
+    setRotation(0)
+  }
+
+  const [rotation, setRotation] = useState(0)
+  const rotate = () => {
+    setRotation((rotation + 90) % 360)
   }
 
   return (
@@ -42,12 +49,12 @@ export default function Main() {
         <Controls showSuggestionSwitch={showSuggestionSwitch} showSuggestion={showSuggestion} setShowSuggestion={setShowSuggestionLocalStorage} getSquiggles={getSquiggles} />
       </Container>
       <Container className={styles.container}>
-        <Drawing ref={sketchElement} generateSuggestion={generateSuggestion} key={drawingKey} />
+        <Drawing ref={sketchElement} generateSuggestion={generateSuggestion} key={drawingKey} rotation={rotation} />
         <div className={styles.buttonContainer}>
           <div className={styles.rotateButtonDiv}>
-            {/*<Fab className={styles.rotateButton} size='small'>*/}
-            {/*  <RotateRightIcon />*/}
-            {/*</Fab>*/}
+            <Fab className={styles.rotateButton} size='small' onClick={rotate}>
+              <RotateRightIcon />
+            </Fab>
           </div>
           {
             showSuggestion && suggestion &&

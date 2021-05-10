@@ -1,8 +1,8 @@
-import { forwardRef, useState, useEffect, useCallback } from 'react'
+import { forwardRef, useState, useEffect, useCallback, useReducer } from 'react'
 import styles from './Drawing.module.css'
 
 // Controls the effective resolution of the canvas.
-const SCALAR = 2
+const SCALAR = 1
 
 function random(limit) {
   return Math.floor(Math.random() * limit)
@@ -12,7 +12,7 @@ function semiRandom(limit) {
   return Math.floor(Math.random() * limit * .8) + limit * .1
 }
 
-function drawRandomSquiggle(ctx, width, height) {
+function generateRandomSquiggle(width, height) {
   const randomPoints = []
   for (let i = 0; i < random(3) + 4; i++) {
     randomPoints.push({
@@ -45,7 +45,7 @@ function drawRandomSquiggle(ctx, width, height) {
   const isSorted = Math.random() < .3
   const isVerticalSort = Math.random() < .5
   const smoothingFactor = Math.random() * 5 + 0.5
-  randomPoints
+  const sortedRandomPoints = randomPoints
     .sort((a, b) => {
       if (!isSorted) {
         return 0
@@ -56,22 +56,22 @@ function drawRandomSquiggle(ctx, width, height) {
         return b.x - a.x
       }
     })
-    .forEach((point, i) => {
 
-      point.isCurve
-        ? smoothLine(ctx, { a: indexOrNext(i - 1), b: indexOrNext(i), c: indexOrLast(i + 1), d: indexOrLast(i + 2)}, smoothingFactor)
-        : drawLine(ctx, point, indexOrLast(i + 1))
+  return sortedRandomPoints.map((point, i) => {
+    if (point.isCurve) {
+      const curveInfo = smoothCurve({ a: indexOrNext(i - 1), b: indexOrNext(i), c: indexOrLast(i + 1), d: indexOrLast(i + 2)}, smoothingFactor)
+      return { type: 'curve', ...curveInfo }
+    }
+    const lineInfo = straightLine(point, indexOrLast(i + 1))
+    return { type: 'line', ...lineInfo }
   })
-  // ctx.strokeStyle = penColor
-  ctx.lineWidth = 5 * SCALAR
-  ctx.lineCap = 'round'
-  ctx.stroke()
 }
 
-function drawLine(ctx, start, end) {
-  ctx.moveTo(start.x * SCALAR, start.y * SCALAR)
-  ctx.lineTo(end.x * SCALAR, end.y * SCALAR)
-  ctx.stroke()
+function straightLine(start, end) {
+  return {
+    start: { x: start.x * SCALAR, y: start.y * SCALAR },
+    end: { x: end.x * SCALAR, y: end.y * SCALAR },
+  }
 }
 
 export function getFirstControlPoint({ a, b, c}, smoothingFactor) {
@@ -89,16 +89,18 @@ export function getSecondControlPoint({ b, c, d}, smoothingFactor) {
 // Values between 5 and 10 seem to work best. Too high, and it doesn't smooth much. Too low, and it makes swoopy artifacts.
 const SMOOTHING_FACTOR = 6
 
-function smoothLine(ctx, { a, b, c, d }, smoothingFactor = SMOOTHING_FACTOR) {
+function smoothCurve({ a, b, c, d }, smoothingFactor = SMOOTHING_FACTOR) {
   // Draw a line between B and C. Use the slope of the surrounding points to calculate control points.
-  ctx.moveTo(b.x * SCALAR, b.y * SCALAR)
+
   const firstControl = getFirstControlPoint({ a, b, c }, smoothingFactor)
   const secondControl = getSecondControlPoint({ b, c, d }, smoothingFactor)
-  ctx.bezierCurveTo(firstControl.x * SCALAR, firstControl.y * SCALAR, secondControl.x * SCALAR, secondControl.y * SCALAR, c.x * SCALAR, c.y * SCALAR)
-  ctx.strokeStyle = 'black'
-  ctx.lineWidth = 3 * SCALAR
-  ctx.lineCap = 'smooth'
-  ctx.stroke()
+
+  return {
+    start: { x: b.x * SCALAR, y: b.y * SCALAR },
+    firstControl: { x: firstControl.x * SCALAR, y: firstControl.y * SCALAR},
+    secondControl: { x: secondControl.x * SCALAR, y: secondControl.y * SCALAR },
+    end: { x: c.x * SCALAR, y: c.y * SCALAR },
+  }
 }
 
 function getPoint(sketchElement, x, y) {
@@ -106,23 +108,106 @@ function getPoint(sketchElement, x, y) {
   return { x: x - left - window.pageXOffset, y: y - top - window.pageYOffset }
 }
 
-const Drawing = forwardRef(({ generateSuggestion }, sketchElement) => {
+function drawStrokes(ctx, strokes) {
+  strokes.forEach(stroke => {
+    switch (stroke.type) {
+      case 'curve': {
+        const { start, firstControl, secondControl, end } = stroke
+        ctx.moveTo(start.x, start.y)
+        ctx.bezierCurveTo(firstControl.x, firstControl.y, secondControl.x, secondControl.y, end.x, end.y)
+        ctx.stroke()
+        break
+      }
+      case 'line': {
+        const { start, end } = stroke
+        ctx.moveTo(start.x, start.y)
+        ctx.lineTo(end.x, end.y)
+        ctx.stroke()
+        break
+      }
+      default:
+    }
+  })
+}
+
+const Drawing = forwardRef(({ generateSuggestion, rotation }, sketchElement) => {
   const [mouseDown, setMouseDown] = useState(false)
   const [pointState, setPointState] = useState({})
 
+  const [strokes, addStroke] = useReducer((state, action) => {
+    return [...state, action]
+  }, [])
+  const [drawnIndex, setDrawnIndex] = useState(0)
+
+  useEffect(() => {
+    // Short circuit if there are no strokes to draw.
+    if (drawnIndex === strokes.length) {
+      return
+    }
+console.log('REDRAWING')
+
+    // Get the canvas context.
+    const ctx = sketchElement.current.getContext('2d')
+
+    // Calculate the undrawn strokes.
+    const undrawnStrokes = strokes.slice(drawnIndex)
+console.log(`drawing from stroke ${drawnIndex}`)
+
+    // Draw the strokes.
+    drawStrokes(ctx, undrawnStrokes)
+
+    // Update the drawn index.
+console.log(`updating drawn index to ${strokes.length}`)
+    setDrawnIndex(strokes.length)
+  }, [strokes, sketchElement, drawnIndex])
+
+  useEffect(() => {
+console.log('ROTATE')
+    const canvas = sketchElement.current
+    const { width, height } = canvas.getBoundingClientRect()
+
+    // Clear canvas.
+console.log('clearing')
+    const ctx = canvas.getContext('2d')
+    ctx.fillStyle = 'white'
+    ctx.fillRect(0, 0, width * SCALAR, height * SCALAR)
+    ctx.fillStyle = 'black'
+
+    // Rotate the context around it's center point.
+    const centerX = width * SCALAR / 2
+    const centerY = height * SCALAR / 2
+    ctx.translate(centerX, centerY)
+console.log(`rotating to ${rotation} degrees around ${centerX}, ${centerY}`)
+    ctx.rotate(rotation * Math.PI / 180)
+    ctx.translate(-1 * centerX, -1 * centerY)
+
+    // Redraw the image.
+console.log('resetting drawn index')
+    setDrawnIndex(0)
+  }, [rotation, sketchElement])
+
   const startNewSquiggle = useCallback(() => {
+console.log('NEW SQUIGGLE')
     // Scale canvas to the same ratio as its pixel size.
     const canvas = sketchElement.current
     const { width, height } = canvas.getBoundingClientRect()
     canvas.setAttribute('width', width * SCALAR)
     canvas.setAttribute('height', height * SCALAR)
 
-    // Clear canvas
+    // Clear canvas.
     const ctx = canvas.getContext('2d')
-    ctx.clearRect(0, 0, width, height)
+    ctx.clearRect(0, 0, width * SCALAR, height * SCALAR)
 
-    // Draw squiggle
-    drawRandomSquiggle(ctx, width, height)
+    // Set stroke style.
+    ctx.strokeStyle = 'black'
+    ctx.lineWidth = 3 * SCALAR
+    ctx.lineCap = 'smooth'
+
+    // Draw squiggle.
+    const squiggleInfo = generateRandomSquiggle(width, height)
+    squiggleInfo.forEach(squiggle => {
+      addStroke(squiggle)
+    })
 
     // Generate a new suggestion.
     generateSuggestion()
@@ -157,7 +242,8 @@ const Drawing = forwardRef(({ generateSuggestion }, sketchElement) => {
   const onMouseMove = (event) => {
     if (mouseDown) {
       const newPointState = { a: pointState.b, b: pointState.c, c: pointState.d, d: getPoint(sketchElement, event.pageX, event.pageY) }
-      smoothLine(sketchElement.current.getContext('2d'), newPointState)
+      const curveInfo = smoothCurve(newPointState)
+      addStroke({ type: 'curve', ...curveInfo })
       setPointState(newPointState)
     }
   }
@@ -184,7 +270,8 @@ const Drawing = forwardRef(({ generateSuggestion }, sketchElement) => {
       const x = event?.changedTouches?.[0]?.pageX
       const y = event?.changedTouches?.[0]?.pageY
       const newPointState = { a: pointState.b, b: pointState.c, c: pointState.d, d: getPoint(sketchElement, x, y) }
-      smoothLine(sketchElement.current.getContext('2d'), newPointState)
+      const curveInfo = smoothCurve(newPointState)
+      addStroke({ type: 'curve', ...curveInfo })
       setPointState(newPointState)
     }
   }
