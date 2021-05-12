@@ -2,22 +2,23 @@ import { forwardRef, useState, useEffect, useCallback, useReducer } from 'react'
 import styles from './Drawing.module.css'
 
 // Controls the effective resolution of the canvas.
-const SCALAR = 1
+const SCALAR = 2
 
 function random(limit) {
   return Math.floor(Math.random() * limit)
 }
 
-function semiRandom(limit) {
-  return Math.floor(Math.random() * limit * .8) + limit * .1
+function randomWithPadding(limit) {
+  // Choose a number within 60% of the limit, with a 20% padding on either side.
+  return Math.floor(Math.random() * limit * .6) + limit * .2
 }
 
 function generateRandomSquiggle(width, height) {
   const randomPoints = []
   for (let i = 0; i < random(3) + 4; i++) {
     randomPoints.push({
-      x: semiRandom(width),
-      y: semiRandom(height),
+      x: randomWithPadding(width),
+      y: randomWithPadding(height),
       isCurve: Math.random() < .7
     })
   }
@@ -60,10 +61,10 @@ function generateRandomSquiggle(width, height) {
   return sortedRandomPoints.map((point, i) => {
     if (point.isCurve) {
       const curveInfo = smoothCurve({ a: indexOrNext(i - 1), b: indexOrNext(i), c: indexOrLast(i + 1), d: indexOrLast(i + 2)}, smoothingFactor)
-      return { type: 'curve', ...curveInfo }
+      return { type: 'curve', ...curveInfo, rotation: 0 }
     }
     const lineInfo = straightLine(point, indexOrLast(i + 1))
-    return { type: 'line', ...lineInfo }
+    return { type: 'line', ...lineInfo, rotation: 0 }
   })
 }
 
@@ -108,8 +109,28 @@ function getPoint(sketchElement, x, y) {
   return { x: x - left - window.pageXOffset, y: y - top - window.pageYOffset }
 }
 
-function drawStrokes(ctx, strokes) {
+
+function rotateCanvas(ctx, rotation) {
+  const centerX = ctx.canvas.width / 2
+  const centerY = ctx.canvas.height / 2
+  const rotationRadians = rotation * Math.PI / 180
+  ctx.translate(centerX, centerY)
+  ctx.rotate(rotationRadians)
+  ctx.translate(-1 * centerX, -1 * centerY)
+}
+
+function drawStrokes(ctx, strokes, canvasRotation) {
+  ctx.beginPath()
+  let currentRotation = canvasRotation
   strokes.forEach(stroke => {
+    // Rotate if necessary.
+    const rotationAdjustment = currentRotation - stroke.rotation
+    if (rotationAdjustment) {
+      rotateCanvas(ctx, rotationAdjustment)
+      currentRotation = stroke.rotation
+    }
+
+    // Draw the stroke
     switch (stroke.type) {
       case 'curve': {
         const { start, firstControl, secondControl, end } = stroke
@@ -128,6 +149,12 @@ function drawStrokes(ctx, strokes) {
       default:
     }
   })
+
+  // Reset rotation if necessary
+  const rotationAdjustmentReset = currentRotation - canvasRotation
+  if (rotationAdjustmentReset) {
+    rotateCanvas(ctx, rotationAdjustmentReset)
+  }
 }
 
 const Drawing = forwardRef(({ generateSuggestion, rotation }, sketchElement) => {
@@ -139,55 +166,39 @@ const Drawing = forwardRef(({ generateSuggestion, rotation }, sketchElement) => 
   }, [])
   const [drawnIndex, setDrawnIndex] = useState(0)
 
+  // Handle new strokes and redraws.
   useEffect(() => {
     // Short circuit if there are no strokes to draw.
     if (drawnIndex === strokes.length) {
       return
     }
-console.log('REDRAWING')
 
     // Get the canvas context.
     const ctx = sketchElement.current.getContext('2d')
 
     // Calculate the undrawn strokes.
     const undrawnStrokes = strokes.slice(drawnIndex)
-console.log(`drawing from stroke ${drawnIndex}`)
 
     // Draw the strokes.
-    drawStrokes(ctx, undrawnStrokes)
+    drawStrokes(ctx, undrawnStrokes, rotation)
 
     // Update the drawn index.
-console.log(`updating drawn index to ${strokes.length}`)
     setDrawnIndex(strokes.length)
-  }, [strokes, sketchElement, drawnIndex])
+  }, [strokes, sketchElement, drawnIndex, rotation])
 
+  // Handle rotations.
   useEffect(() => {
-console.log('ROTATE')
-    const canvas = sketchElement.current
-    const { width, height } = canvas.getBoundingClientRect()
+    const ctx = sketchElement.current.getContext('2d')
 
     // Clear canvas.
-console.log('clearing')
-    const ctx = canvas.getContext('2d')
     ctx.fillStyle = 'white'
-    ctx.fillRect(0, 0, width * SCALAR, height * SCALAR)
-    ctx.fillStyle = 'black'
-
-    // Rotate the context around it's center point.
-    const centerX = width * SCALAR / 2
-    const centerY = height * SCALAR / 2
-    ctx.translate(centerX, centerY)
-console.log(`rotating to ${rotation} degrees around ${centerX}, ${centerY}`)
-    ctx.rotate(rotation * Math.PI / 180)
-    ctx.translate(-1 * centerX, -1 * centerY)
+    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height)
 
     // Redraw the image.
-console.log('resetting drawn index')
     setDrawnIndex(0)
   }, [rotation, sketchElement])
 
   const startNewSquiggle = useCallback(() => {
-console.log('NEW SQUIGGLE')
     // Scale canvas to the same ratio as its pixel size.
     const canvas = sketchElement.current
     const { width, height } = canvas.getBoundingClientRect()
@@ -236,14 +247,13 @@ console.log('NEW SQUIGGLE')
     setMouseDown(true)
     const point = getPoint(sketchElement, event.pageX, event.pageY)
     setPointState({ b: point, c: point, d: point })
-    sketchElement.current.getContext('2d').beginPath()
   }
 
   const onMouseMove = (event) => {
     if (mouseDown) {
       const newPointState = { a: pointState.b, b: pointState.c, c: pointState.d, d: getPoint(sketchElement, event.pageX, event.pageY) }
       const curveInfo = smoothCurve(newPointState)
-      addStroke({ type: 'curve', ...curveInfo })
+      addStroke({ type: 'curve', ...curveInfo, rotation })
       setPointState(newPointState)
     }
   }
@@ -271,7 +281,7 @@ console.log('NEW SQUIGGLE')
       const y = event?.changedTouches?.[0]?.pageY
       const newPointState = { a: pointState.b, b: pointState.c, c: pointState.d, d: getPoint(sketchElement, x, y) }
       const curveInfo = smoothCurve(newPointState)
-      addStroke({ type: 'curve', ...curveInfo })
+      addStroke({ type: 'curve', ...curveInfo, rotation })
       setPointState(newPointState)
     }
   }
