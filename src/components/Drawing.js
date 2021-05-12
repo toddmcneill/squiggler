@@ -4,6 +4,21 @@ import styles from './Drawing.module.css'
 // Controls the effective resolution of the canvas.
 const SCALAR = 2
 
+function resetCanvas(canvas) {
+  const { width, height } = canvas.getBoundingClientRect()
+  canvas.setAttribute('width', width * SCALAR)
+  canvas.setAttribute('height', height * SCALAR)
+
+  // Clear canvas.
+  const ctx = canvas.getContext('2d')
+  ctx.clearRect(0, 0, width * SCALAR, height * SCALAR)
+
+  // Set stroke style.
+  ctx.strokeStyle = 'black'
+  ctx.lineWidth = 3 * SCALAR
+  ctx.lineCap = 'smooth'
+}
+
 function random(limit) {
   return Math.floor(Math.random() * limit)
 }
@@ -201,18 +216,8 @@ const Drawing = forwardRef(({ generateSuggestion, rotation }, sketchElement) => 
   const startNewSquiggle = useCallback(() => {
     // Scale canvas to the same ratio as its pixel size.
     const canvas = sketchElement.current
+    resetCanvas(canvas)
     const { width, height } = canvas.getBoundingClientRect()
-    canvas.setAttribute('width', width * SCALAR)
-    canvas.setAttribute('height', height * SCALAR)
-
-    // Clear canvas.
-    const ctx = canvas.getContext('2d')
-    ctx.clearRect(0, 0, width * SCALAR, height * SCALAR)
-
-    // Set stroke style.
-    ctx.strokeStyle = 'black'
-    ctx.lineWidth = 3 * SCALAR
-    ctx.lineCap = 'smooth'
 
     // Draw squiggle.
     const squiggleInfo = generateRandomSquiggle(width, height)
@@ -225,19 +230,20 @@ const Drawing = forwardRef(({ generateSuggestion, rotation }, sketchElement) => 
   }, [sketchElement, generateSuggestion])
 
   // Reset the canvas on window resize to avoid weird offset issues.
-  // It's not the optimal solution, but prevents a pretty confusing bug.
-  // It's disabled for now because it also causes confusing behavior.
-  // useEffect(() => {
-  //   const resizeHandler = () => {
-  //     fixCanvasScale()
-  //     startNewSquiggle()
-  //   }
-  //
-  //   window.addEventListener('resize', resizeHandler)
-  //   return () => {
-  //     window.removeEventListener('resize', resizeHandler)
-  //   }
-  // })
+  useEffect(() => {
+    const resizeHandler = () => {
+      // Reset the canvas dimensions.
+      resetCanvas(sketchElement.current)
+
+      // Redraw the image.
+      setDrawnIndex(0)
+    }
+
+    window.addEventListener('resize', resizeHandler)
+    return () => {
+      window.removeEventListener('resize', resizeHandler)
+    }
+  })
 
   useEffect(() => {
     startNewSquiggle()
